@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.makeitso.R.drawable as AppIcon
 import com.example.makeitso.R.string as AppText
 import com.example.makeitso.common.composable.ActionToolbar
@@ -42,7 +43,14 @@ fun TasksScreen(
   openScreen: (String) -> Unit,
   viewModel: TasksViewModel = hiltViewModel()
 ) {
+  // Recolecta el estado de las tareas
+  val tasks = viewModel
+    .tasks
+    .collectAsStateWithLifecycle(emptyList())  // Usamos collectAsStateWithLifecycle para recolectar el estado
+
+  // Pasa las tareas a TasksScreenContent
   TasksScreenContent(
+    tasks = tasks.value,  // Pasa el estado de las tareas aquí
     onAddClick = viewModel::onAddClick,
     onSettingsClick = viewModel::onSettingsClick,
     onTaskCheckChange = viewModel::onTaskCheckChange,
@@ -57,6 +65,7 @@ fun TasksScreen(
 @Composable
 @ExperimentalMaterialApi
 fun TasksScreenContent(
+  tasks: List<Task>,  // Añade el parámetro tasks
   modifier: Modifier = Modifier,
   onAddClick: ((String) -> Unit) -> Unit,
   onSettingsClick: ((String) -> Unit) -> Unit,
@@ -86,8 +95,9 @@ fun TasksScreenContent(
 
       Spacer(modifier = Modifier.smallSpacer())
 
+      // Actualiza LazyColumn para usar la lista de tareas
       LazyColumn {
-        items(emptyList<Task>(), key = { it.id }) { taskItem ->
+        items(tasks, key = { it.id }) { taskItem ->
           TaskItem(
             task = taskItem,
             options = listOf(),
@@ -106,6 +116,7 @@ fun TasksScreenContent(
 fun TasksScreenPreview() {
   MakeItSoTheme {
     TasksScreenContent(
+      tasks = emptyList(),  // Usa una lista vacía para el preview
       onAddClick = { },
       onSettingsClick = { },
       onTaskCheckChange = { },
@@ -114,3 +125,4 @@ fun TasksScreenPreview() {
     )
   }
 }
+
